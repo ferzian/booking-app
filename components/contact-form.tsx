@@ -1,6 +1,6 @@
 "use client";
 import { useActionState } from "react";
-import { ContactMessage } from "@/lib/action";
+import { ContactMessage } from "@/lib/actions";
 import clsx from "clsx";
 
 const ContactForm = () => {

@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "lh3.googleusercontent.com",
+      },
+      {
+        protocol: "https",
+        hostname: "h5td7bxs5wwikwcs.public.blob.vercel-storage.com",
       }
     ]
   }

@@ -6,7 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../app/generated/prisma"
+  // output   = "../app/generated/prisma"
 }
 
 datasource db {
@@ -22,7 +22,7 @@ model Court {
   image         String
   price         Int
   capacity      Int              @default(1)
-  RoomAmenities CourtAmenities[]
+  CourtAmenities CourtAmenities[]
   Reservation   Reservation[]
 
   createdAt DateTime @default(now())
