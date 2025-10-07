@@ -1,5 +1,17 @@
 import { deleteCourt } from "@/lib/actions";
-import { IoTrashOutline } from "react-icons/io5";
+import Link from "next/link";
+import { IoPencil, IoTrashOutline } from "react-icons/io5";
+
+export const EditButton = ({ id }: { id: string }) => {
+  return (
+    <Link
+      className="rounded-sm p-1 hover:bg-gray-200"
+      href={`/admin/court/edit/${id}`}
+    >
+      <IoPencil className="size-5" />
+    </Link>
+  );
+};
 
 export const DeleteButton = ({ id, image }: { id: string; image: string }) => {
   const DeleteCourtWithId = deleteCourt.bind(null, id, image);

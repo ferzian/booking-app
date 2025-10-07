@@ -24,3 +24,15 @@ export const getCourts = async () => {
     console.log(error);
   }
 };
+
+export const getCourtById = async (courtId: string) => {
+  try {
+    const result = await prisma.court.findUnique({
+      where: { id: courtId },
+      include: { CourtAmenities: { select: { amenitiesId: true } } },
+    });
+    return result;
+  } catch (error) {
+    console.log(error);
+  }
+};

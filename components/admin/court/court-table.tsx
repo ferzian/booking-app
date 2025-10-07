@@ -1,7 +1,7 @@
 import { getCourts } from "@/lib/data";
 import Image from "next/image";
 import { formatDate, formatCurrency } from "@/lib/utils";
-import { DeleteButton } from "@/components/admin/court/button";
+import { DeleteButton, EditButton } from "@/components/admin/court/button";
 
 const CourtTable = async () => {
   const courts = await getCourts();
@@ -49,7 +49,10 @@ const CourtTable = async () => {
                 {formatDate(court.createdAt.toString())}
               </td>
               <td className="px-6 py-4 text-right">
-                <DeleteButton id={court.id} image={court.image} />
+                <div className="flex items-center justify-center gap-1">
+                  <EditButton id={court.id} />
+                  <DeleteButton id={court.id} image={court.image} />
+                </div>
               </td>
             </tr>
           ))}

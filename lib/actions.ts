@@ -81,7 +81,7 @@ export const ContactMessage = async (
 };
 
 // Delete Court
-export const deleteCourt = async (id: string, imagae: string) => {
+export const deleteCourt = async (id: string, image: string) => {
   try {
     await del(image);
     await prisma.court.delete({
@@ -92,4 +92,57 @@ export const deleteCourt = async (id: string, imagae: string) => {
   }
 
   revalidatePath("/admin/court");
+};
+
+// Update Court
+export const updateCourt = async (
+  image: string,
+  courtId: string,
+  prevState: unknown,
+  formData: FormData
+) => {
+  if (!image) return { message: "Image is required." };
+
+  const rawData = {
+    name: formData.get("name"),
+    description: formData.get("description"),
+    capacity: formData.get("capacity"),
+    price: formData.get("price"),
+    amenities: formData.getAll("amenities"),
+  };
+
+  const validatedFields = CourtSchema.safeParse(rawData);
+  if (!validatedFields.success) {
+    return { error: validatedFields.error.flatten().fieldErrors };
+  }
+  const { name, description, capacity, price, amenities } =
+    validatedFields.data;
+
+  try {
+    await prisma.$transaction([
+      prisma.court.update({
+        where: { id: courtId },
+        data: {
+          name,
+          description,
+          capacity,
+          price,
+          image,
+          CourtAmenities: {
+            deleteMany: {},
+          },
+        },
+      }),
+      prisma.courtAmenities.createMany({
+        data: amenities.map((item) => ({
+          courtId,
+          amenitiesId: item,
+        })),
+      }),
+    ]);
+  } catch (error) {
+    console.log(error);
+  }
+  revalidatePath("/admin/court");
+  redirect("/admin/court");
 };
