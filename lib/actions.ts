@@ -3,6 +3,8 @@
 import { ContactSchema, CourtSchema } from "@/lib/zod";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { del } from "@vercel/blob";
+import { revalidatePath } from "next/cache";
 
 export const saveCourt = async (
   image: string,
@@ -76,4 +78,18 @@ export const ContactMessage = async (
   } catch (error) {
     console.log(error);
   }
+};
+
+// Delete Court
+export const deleteCourt = async (id: string, imagae: string) => {
+  try {
+    await del(image);
+    await prisma.court.delete({
+      where: { id },
+    });
+  } catch (error) {
+    console.log(error);
+  }
+
+  revalidatePath("/admin/court");
 };

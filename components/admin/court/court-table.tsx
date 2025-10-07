@@ -1,6 +1,7 @@
 import { getCourts } from "@/lib/data";
 import Image from "next/image";
 import { formatDate, formatCurrency } from "@/lib/utils";
+import { DeleteButton } from "@/components/admin/court/button";
 
 const CourtTable = async () => {
   const courts = await getCourts();
@@ -47,7 +48,9 @@ const CourtTable = async () => {
               <td className="px-6 py-4">
                 {formatDate(court.createdAt.toString())}
               </td>
-              <td className="px-6 py-4 text-right"></td>
+              <td className="px-6 py-4 text-right">
+                <DeleteButton id={court.id} image={court.image} />
+              </td>
             </tr>
           ))}
         </tbody>
