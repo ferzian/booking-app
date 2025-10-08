@@ -36,3 +36,25 @@ export const getCourtById = async (courtId: string) => {
     console.log(error);
   }
 };
+
+export const getCourtDetailById = async (courtId: string) => {
+  try {
+    const result = await prisma.court.findUnique({
+      where: { id: courtId },
+      include: {
+        CourtAmenities: {
+          include: {
+            Amenities: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    return result;
+  } catch (error) {
+    console.log(error);
+  }
+};
