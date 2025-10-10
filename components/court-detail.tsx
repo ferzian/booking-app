@@ -1,13 +1,17 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { getCourtDetailById } from "@/lib/data";
+import { getCourtDetailById, getDisabledCourtById } from "@/lib/data";
 import { IoCheckmark, IoPeopleOutline } from "react-icons/io5";
 import { formatCurrency } from "@/lib/utils";
 import ReserveForm from "@/components/reserve-form";
 
 const CourtDetail = async ({ courtId }: { courtId: string }) => {
-  const court = await getCourtDetailById(courtId);
-  if (!court) return notFound();
+  const [court, disabledDate] = await Promise.all([
+    getCourtDetailById(courtId),
+    getDisabledCourtById(courtId),
+  ]);
+  if (!court || !disabledDate) return notFound();
+
   return (
     <div className="max-w-screen-xl py-16 px-4 grid lg:grid-cols-12 gap-8 mx-auto">
       <div className="md:col-span-8">
@@ -48,7 +52,7 @@ const CourtDetail = async ({ courtId }: { courtId: string }) => {
             </div>
           </div>
           {/* Reservation Form */}
-          <ReserveForm court={court} />
+          <ReserveForm court={court} disabledDate={disabledDate} />
         </div>
       </div>
     </div>

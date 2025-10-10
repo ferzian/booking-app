@@ -86,3 +86,22 @@ export const getReservationById = async (id: string) => {
     console.log(error);
   }
 };
+
+export const getDisabledCourtById = async (courtId: string) => {
+  try {
+    const result = await prisma.reservation.findMany({
+      select:{
+        startDate: true,
+        endDate: true,
+      },
+      where:{
+        courtId: courtId,
+        Payment:{status: {not: "failure"}}
+      }
+    })
+    return result;
+  } catch (error) {
+    console.log(error);
+  }
+};
+

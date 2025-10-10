@@ -6,14 +6,22 @@ export type CourtProps = Prisma.CourtGetPayload<{
 
 export type CourtDetailProps = Prisma.CourtGetPayload<{
   include: {
-        CourtAmenities: {
-          include: {
-            Amenities: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        },
-      },
+    CourtAmenities: {
+      include: {
+        Amenities: {
+          select: {
+            name: true;
+          };
+        };
+      };
+    };
+  };
 }>;
+
+
+export type DisabledDateProps = Prisma.ReservationGetPayload<{
+  select: {
+    startDate: true;
+    endDate: true;
+  }
+}>

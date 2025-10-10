@@ -2,6 +2,7 @@ import { getReservationById } from "@/lib/data";
 import Image from "next/image";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import { differenceInCalendarDays } from "date-fns";
+import PaymentButton from "@/components/payment-button";
 
 const CheckoutDetail = async ({ reservationId }: { reservationId: string }) => {
   const reservation = await getReservationById(reservationId);
@@ -32,13 +33,16 @@ const CheckoutDetail = async ({ reservationId }: { reservationId: string }) => {
             </h5>
             <div className="flex items-center gap-1 text-2xl text-gray-700">
               <div className="flex items-center justify-center gap-1">
-                <span className="text-2xl">{formatCurrency(reservation.price)}</span>
+                <span className="text-2xl">
+                  {formatCurrency(reservation.price)}
+                </span>
                 <span>/ hour</span>
               </div>
             </div>
           </div>
         </div>
         {/* Payment Button */}
+        <PaymentButton reservation={reservation} />
       </div>
       <div className="border border-gray-200 px-3 py-5 bg-white rounded-sm">
         <table className="w-full">

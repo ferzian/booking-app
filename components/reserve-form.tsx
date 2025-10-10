@@ -5,10 +5,12 @@ import { addDays } from "date-fns";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { createReserve } from "@/lib/actions";
-import { CourtDetailProps } from "@/types/court";
+import { CourtDetailProps, DisabledDateProps } from "@/types/court";
 import clsx from "clsx";
 
-const ReserveForm = ({ court }: { court: CourtDetailProps }) => {
+const ReserveForm = ({ court,
+  disabledDate
+ }: { court: CourtDetailProps; disabledDate: DisabledDateProps[] }) => {
   const StartDate = new Date();
   const EndDate = addDays(StartDate, 1);
 
@@ -26,6 +28,13 @@ const ReserveForm = ({ court }: { court: CourtDetailProps }) => {
     null
   );
 
+  const excludeDates = disabledDate.map((item) => {
+    return{
+      start: item.startDate,
+      end: item.endDate,
+    }
+  })
+
   return (
     <div>
       <form action={formAction}>
@@ -40,6 +49,7 @@ const ReserveForm = ({ court }: { court: CourtDetailProps }) => {
             minDate={new Date()}
             onChange={handleDateChange}
             selectsRange={true}
+            excludeDateIntervals={excludeDates}
             dateFormat={"dd-MM-YYYY"}
             wrapperClassName="w-full"
             className="py-2 px-4 rounded-md border border-gray-300 w-full"
