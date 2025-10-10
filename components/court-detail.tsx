@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getCourtDetailById } from "@/lib/data";
 import { IoCheckmark, IoPeopleOutline } from "react-icons/io5";
 import { formatCurrency } from "@/lib/utils";
+import ReserveForm from "@/components/reserve-form";
 
 const CourtDetail = async ({ courtId }: { courtId: string }) => {
   const court = await getCourtDetailById(courtId);
@@ -34,19 +35,20 @@ const CourtDetail = async ({ courtId }: { courtId: string }) => {
       </div>
       <div className="md:col-span-4">
         <div className="border-2 border-gray-300 border-dashed px-3 py-5 bg-slate-50 rounded-md">
-            <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center space-x-2">
-                    <IoPeopleOutline className="size-4"/>
-                    <span>
-                        {court.capacity} People
-                    </span>
-                </div>
-                <div className="flex items-center">
-                    <span className="text-2xl font-semibold text-gray-600">{formatCurrency(court.price)}</span>
-                    <span className="text-gray-400 text-sm">/Hour</span>
-                </div>
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center space-x-2">
+              <IoPeopleOutline className="size-4" />
+              <span>{court.capacity} People</span>
             </div>
-            {/* Reservation Form */}
+            <div className="flex items-center">
+              <span className="text-2xl font-semibold text-gray-600">
+                {formatCurrency(court.price)}
+              </span>
+              <span className="text-gray-400 text-sm">/Hour</span>
+            </div>
+          </div>
+          {/* Reservation Form */}
+          <ReserveForm court={court} />
         </div>
       </div>
     </div>
