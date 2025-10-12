@@ -90,18 +90,50 @@ export const getReservationById = async (id: string) => {
 export const getDisabledCourtById = async (courtId: string) => {
   try {
     const result = await prisma.reservation.findMany({
-      select:{
+      select: {
         startDate: true,
         endDate: true,
       },
-      where:{
+      where: {
         courtId: courtId,
-        Payment:{status: {not: "failure"}}
-      }
-    })
+        Payment: { status: { not: "failure" } },
+      },
+    });
     return result;
   } catch (error) {
     console.log(error);
   }
 };
 
+export const getReservationByUserId = async () => {
+  const session = await auth();
+  if (!session || !session.user || !session.user.id) {
+    throw new Error("Unauthorized Access");
+  }
+  try {
+    const result = await prisma.reservation.findMany({
+      where: { userId: session.user.id },
+      include: {
+        Court: {
+          select: {
+            name: true,
+            image: true,
+            price: true,
+          },
+        },
+        User: {
+          select: {
+            name: true,
+            email: true,
+            phone: true,
+          },
+        },
+        Payment: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    return result;
+  } catch (error) {
+    console.log(error);
+  }
+};
