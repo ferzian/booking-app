@@ -92,6 +92,8 @@ export const getDisabledCourtById = async (courtId: string) => {
     const result = await prisma.reservation.findMany({
       select: {
         date: true,
+        startTime: true,
+        endTime: true,
       },
       where: {
         courtId: courtId,
