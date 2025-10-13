@@ -18,10 +18,10 @@ export type CourtDetailProps = Prisma.CourtGetPayload<{
   };
 }>;
 
-
 export type DisabledDateProps = Prisma.ReservationGetPayload<{
   select: {
-    startDate: true;
-    endDate: true;
-  }
-}>
+    date: true;
+    startTime: true;
+    endTime: true;
+  };
+}>;

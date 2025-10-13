@@ -1,7 +1,6 @@
 import { getReservationById } from "@/lib/data";
 import { notFound } from "next/navigation";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { differenceInCalendarDays } from "date-fns";
 
 const ReservationDetail = async ({
   reservationId,
@@ -10,6 +9,14 @@ const ReservationDetail = async ({
 }) => {
   const reservation = await getReservationById(reservationId);
   if (!reservation) return notFound();
+
+  // Calculate duration in hours
+  const [startHour, startMin] = reservation.startTime.split(":").map(Number);
+  const [endHour, endMin] = reservation.endTime.split(":").map(Number);
+  const startTotalMin = startHour * 60 + startMin;
+  const endTotalMin = endHour * 60 + endMin;
+  const durationHours = (endTotalMin - startTotalMin) / 60;
+
   return (
     <div className="w-full bg-white border border-gray-200 rounded-sm shadow">
       <div className="grid md:grid-cols-2 md:gap-5">
@@ -109,9 +116,10 @@ const ReservationDetail = async ({
         <table className="w-full text-sm text-left text-gray-500">
           <thead className="text-xs text-gray-700 uppercase bg-gray-50">
             <tr>
-              <th className="px-6 py-3">Room</th>
-              <th className="px-6 py-3 min-w-60 md:min-w-0">Arrival</th>
-              <th className="px-6 py-3">Departure</th>
+              <th className="px-6 py-3">Court</th>
+              <th className="px-6 py-3 min-w-60 md:min-w-0">Booking Date</th>
+              <th className="px-6 py-3">Start Time</th>
+              <th className="px-6 py-3">End Time</th>
               <th className="px-6 py-3">Duration</th>
               <th className="px-6 py-3 text-right">Sub Total</th>
             </tr>
@@ -123,21 +131,18 @@ const ReservationDetail = async ({
                   <span className="font-medium text-gray-900 whitespace-nowrap">
                     {reservation.Court.name}
                   </span>
-                  <span>Price: {formatCurrency(reservation.price)}</span>
+                  <span>
+                    Price: {formatCurrency(reservation.Court.price)}/hour
+                  </span>
                 </div>
               </td>
               <td className="px-6 py-4">
-                {formatDate(reservation.startDate.toISOString())}
+                {formatDate(reservation.date.toISOString())}
               </td>
+              <td className="px-6 py-4">{reservation.startTime}</td>
+              <td className="px-6 py-4">{reservation.endTime}</td>
               <td className="px-6 py-4">
-                {formatDate(reservation.endDate.toISOString())}
-              </td>
-              <td className="px-6 py-4">
-                {differenceInCalendarDays(
-                  reservation.endDate,
-                  reservation.startDate
-                )}{" "}
-                Hour
+                {durationHours} {durationHours <= 1 ? "Hour" : "Hours"}
               </td>
               <td className="px-6 py-4 text-right">
                 {reservation.Payment &&
@@ -150,7 +155,7 @@ const ReservationDetail = async ({
               <td className="px-6 py-3 font-bold" colSpan={2}>
                 Total
               </td>
-              <td className="px-6 py-3 font-bold text-right" colSpan={3}>
+              <td className="px-6 py-3 font-bold text-right" colSpan={4}>
                 {reservation.Payment &&
                   formatCurrency(reservation.Payment.amount)}
               </td>

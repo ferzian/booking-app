@@ -7,7 +7,7 @@ const ReservationList = async () => {
   if (!reservation) return <p>No Reservation Found</p>;
 
   return (
-    <div className="bg-white p-4 mt-5 shadow-sm">
+    <div className="bg-white p-4 mt-5 shadow-sm overflow-x-auto">
       <table className="w-full divide-y divide-gray-200">
         <thead>
           <tr>
@@ -18,10 +18,13 @@ const ReservationList = async () => {
               Name
             </th>
             <th className="px-6 py-3 text-sm font-bold text-gray-700 uppercase text-left">
-              Arrival
+              Booking Date
             </th>
             <th className="px-6 py-3 text-sm font-bold text-gray-700 uppercase text-left">
-              Departure
+              Start Time
+            </th>
+            <th className="px-6 py-3 text-sm font-bold text-gray-700 uppercase text-left">
+              End Time
             </th>
             <th className="px-6 py-3 text-sm font-bold text-gray-700 uppercase text-left">
               Court Name
@@ -53,13 +56,14 @@ const ReservationList = async () => {
               </td>
               <td className="px-6 py-4">{reserve.User.name}</td>
               <td className="px-6 py-4">
-                {formatDate(reserve.startDate.toISOString())}
+                {formatDate(reserve.date.toISOString())}
               </td>
-              <td className="px-6 py-4">
-                {formatDate(reserve.endDate.toISOString())}
-              </td>
+              <td className="px-6 py-4">{reserve.startTime}</td>
+              <td className="px-6 py-4">{reserve.endTime}</td>
               <td className="px-6 py-4">{reserve.Court.name}</td>
-              <td className="px-6 py-4">{formatCurrency(reserve.price)}</td>
+              <td className="px-6 py-4">
+                {formatCurrency(reserve.Payment?.amount || 0)}
+              </td>
               <td className="px-6 py-4">
                 {formatDate(reserve.createdAt.toISOString())}
               </td>
@@ -73,5 +77,4 @@ const ReservationList = async () => {
     </div>
   );
 };
-
 export default ReservationList;

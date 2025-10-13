@@ -91,8 +91,7 @@ export const getDisabledCourtById = async (courtId: string) => {
   try {
     const result = await prisma.reservation.findMany({
       select: {
-        startDate: true,
-        endDate: true,
+        date: true,
       },
       where: {
         courtId: courtId,
@@ -140,16 +139,24 @@ export const getReservationByUserId = async () => {
 
 export const getRevenueAndReserve = async () => {
   try {
-    const result = await prisma.reservation.aggregate({
-      _count: true,
-      _sum: { price: true },
+    // Get all valid reservations
+    const reservations = await prisma.reservation.findMany({
+      include: {
+        Payment: true,
+      },
       where: {
         Payment: { status: { not: "failure" } },
       },
     });
+
+    // Calculate total revenue from Payment.amount and count reservations
+    const totalRevenue = reservations.reduce((sum, res) => {
+      return sum + (res.Payment?.amount || 0);
+    }, 0);
+
     return {
-      revenue: result._sum.price || 0,
-      reserve: result._count,
+      revenue: totalRevenue,
+      reserve: reservations.length,
     };
   } catch (error) {
     console.log(error);

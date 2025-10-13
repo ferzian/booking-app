@@ -48,15 +48,15 @@ model CourtAmenities {
 
 model Reservation {
   id        String   @id @default(cuid())
-  startDate DateTime
-  endDate   DateTime
+  date      DateTime
+  startTime String   
+  endTime   String   
   price     Int
   userId    String
   User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   courtId   String
   Court     Court    @relation(fields: [courtId], references: [id], onDelete: Cascade)
   Payment   Payment?
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

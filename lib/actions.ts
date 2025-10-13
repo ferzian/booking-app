@@ -6,7 +6,6 @@ import { redirect } from "next/navigation";
 import { del } from "@vercel/blob";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
-import { differenceInCalendarDays } from "date-fns";
 
 export const saveCourt = async (
   image: string,
@@ -152,28 +151,92 @@ export const updateCourt = async (
 export const createReserve = async (
   courtId: string,
   price: number,
-  startDate: Date,
-  endDate: Date,
+  date: Date,
+  startTime: string,
+  endTime: string,
   prevState: unknown,
   formData: FormData
 ) => {
   const session = await auth();
   if (!session || !session.user || !session.user.id)
     redirect(`/signin?redirect_url=court/${courtId}`);
+
   const rawData = {
     name: formData.get("name"),
     phone: formData.get("phone"),
   };
+
   const validatedFields = ReserveSchema.safeParse(rawData);
   if (!validatedFields.success) {
     return {
       error: validatedFields.error.flatten().fieldErrors,
     };
   }
+
   const { name, phone } = validatedFields.data;
-  const night = differenceInCalendarDays(endDate, startDate);
-  if (night <= 0) return { error: "Date must be at least 1 night" };
-  const total = night * price;
+
+  // Validate time format (HH:mm)
+  const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+  if (!timeRegex.test(startTime) || !timeRegex.test(endTime)) {
+    return { messageTime: "Invalid time format" };
+  }
+
+  // Validate end time is after start time
+  const [startHour, startMin] = startTime.split(":").map(Number);
+  const [endHour, endMin] = endTime.split(":").map(Number);
+  const startTotalMin = startHour * 60 + startMin;
+  const endTotalMin = endHour * 60 + endMin;
+
+  if (endTotalMin <= startTotalMin) {
+    return { messageTime: "End time must be after start time" };
+  }
+
+  // Check if booking time slot already exists
+  const existingReservation = await prisma.reservation.findFirst({
+    where: {
+      courtId: courtId,
+      date: {
+        gte: new Date(date.setHours(0, 0, 0, 0)),
+        lt: new Date(date.setHours(23, 59, 59, 999)),
+      },
+      Payment: {
+        status: {
+          not: "failure",
+        },
+      },
+      OR: [
+        {
+          // Booking starts during existing reservation
+          startTime: {
+            gte: startTime,
+            lt: endTime,
+          },
+        },
+        {
+          // Booking ends during existing reservation
+          endTime: {
+            gt: startTime,
+            lte: endTime,
+          },
+        },
+        {
+          // Booking encompasses existing reservation
+          AND: [
+            { startTime: { lte: startTime } },
+            { endTime: { gte: endTime } },
+          ],
+        },
+      ],
+    },
+  });
+
+  if (existingReservation) {
+    return { messageTime: "This time slot is already booked" };
+  }
+
+  // Calculate hours booked
+  const hoursBooked = (endTotalMin - startTotalMin) / 60;
+  const total = Math.ceil(hoursBooked) * price;
 
   let reservationId;
   try {
@@ -187,8 +250,9 @@ export const createReserve = async (
       });
       const reservation = await tx.reservation.create({
         data: {
-          startDate: startDate,
-          endDate: endDate,
+          date: date,
+          startTime: startTime,
+          endTime: endTime,
           price: price,
           courtId: courtId,
           userId: session.user.id as string,
@@ -203,6 +267,7 @@ export const createReserve = async (
     });
   } catch (error) {
     console.log(error);
+    return { messageTime: "Failed to create reservation. Please try again." };
   }
   redirect(`/checkout/${reservationId}`);
 };

@@ -1,19 +1,20 @@
 import { getReservationById } from "@/lib/data";
 import Image from "next/image";
 import { formatDate, formatCurrency } from "@/lib/utils";
-import { differenceInCalendarDays } from "date-fns";
 import PaymentButton from "@/components/payment-button";
 
 const CheckoutDetail = async ({ reservationId }: { reservationId: string }) => {
   const reservation = await getReservationById(reservationId);
-
   if (!reservation || !reservation.Payment)
     return <h1>No Reservation Found</h1>;
 
-  const duration = differenceInCalendarDays(
-    reservation.endDate,
-    reservation.startDate
-  );
+  // Calculate duration in hours
+  const [startHour, startMin] = reservation.startTime.split(":").map(Number);
+  const [endHour, endMin] = reservation.endTime.split(":").map(Number);
+  const startTotalMin = startHour * 60 + startMin;
+  const endTotalMin = endHour * 60 + endMin;
+  const durationHours = (endTotalMin - startTotalMin) / 60;
+
   return (
     <div className="grid md:grid-cols-2 gap-5">
       <div className="order-2">
@@ -70,22 +71,28 @@ const CheckoutDetail = async ({ reservationId }: { reservationId: string }) => {
               </td>
             </tr>
             <tr>
-              <td className="py-2 ">Arrival</td>
+              <td className="py-2 ">Booking Date</td>
               <td className="py-2 text-right truncate">
-                {formatDate(reservation.startDate.toISOString())}
+                {formatDate(reservation.date.toISOString())}
               </td>
             </tr>
             <tr>
-              <td className="py-2 ">Departure</td>
+              <td className="py-2 ">Start Time</td>
               <td className="py-2 text-right truncate">
-                {formatDate(reservation.endDate.toISOString())}
+                {reservation.startTime}
+              </td>
+            </tr>
+            <tr>
+              <td className="py-2 ">End Time</td>
+              <td className="py-2 text-right truncate">
+                {reservation.endTime}
               </td>
             </tr>
             <tr>
               <td className="py-2 ">Duration</td>
               <td className="py-2 text-right truncate">
                 <span>
-                  {duration} {duration <= 1 ? "Night" : "Nights"}
+                  {durationHours} {durationHours <= 1 ? "Hour" : "Hours"}
                 </span>
               </td>
             </tr>
@@ -107,5 +114,4 @@ const CheckoutDetail = async ({ reservationId }: { reservationId: string }) => {
     </div>
   );
 };
-
 export default CheckoutDetail;
