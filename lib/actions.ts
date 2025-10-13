@@ -170,6 +170,8 @@ export const createReserve = async (
   if (!validatedFields.success) {
     return {
       error: validatedFields.error.flatten().fieldErrors,
+      messageDate: "",
+      messageTime: "",
     };
   }
 
@@ -178,7 +180,7 @@ export const createReserve = async (
   // Validate time format (HH:mm)
   const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
   if (!timeRegex.test(startTime) || !timeRegex.test(endTime)) {
-    return { messageTime: "Invalid time format" };
+    return { messageTime: "Invalid time format", messageDate: "", error: {} };
   }
 
   // Validate end time is after start time
@@ -188,10 +190,24 @@ export const createReserve = async (
   const endTotalMin = endHour * 60 + endMin;
 
   if (endTotalMin <= startTotalMin) {
-    return { messageTime: "End time must be after start time" };
+    return {
+      messageTime: "End time must be after start time",
+      messageDate: "",
+      error: {},
+    };
   }
 
-  // Check if booking time slot already exists
+  // Optional: validasi tanggal
+  const today = new Date();
+  if (date < new Date(today.setHours(0, 0, 0, 0))) {
+    return {
+      messageDate: "You can’t book a past date",
+      messageTime: "",
+      error: {},
+    };
+  }
+
+  // Check existing reservation
   const existingReservation = await prisma.reservation.findFirst({
     where: {
       courtId: courtId,
@@ -205,22 +221,9 @@ export const createReserve = async (
         },
       },
       OR: [
+        { startTime: { gte: startTime, lt: endTime } },
+        { endTime: { gt: startTime, lte: endTime } },
         {
-          // Booking starts during existing reservation
-          startTime: {
-            gte: startTime,
-            lt: endTime,
-          },
-        },
-        {
-          // Booking ends during existing reservation
-          endTime: {
-            gt: startTime,
-            lte: endTime,
-          },
-        },
-        {
-          // Booking encompasses existing reservation
           AND: [
             { startTime: { lte: startTime } },
             { endTime: { gte: endTime } },
@@ -231,43 +234,43 @@ export const createReserve = async (
   });
 
   if (existingReservation) {
-    return { messageTime: "This time slot is already booked" };
+    return {
+      messageTime: "This time slot is already booked",
+      messageDate: "",
+      error: {},
+    };
   }
 
-  // Calculate hours booked
+  // Calculate total
   const hoursBooked = (endTotalMin - startTotalMin) / 60;
   const total = Math.ceil(hoursBooked) * price;
 
-  let reservationId;
   try {
-    await prisma.$transaction(async (tx) => {
+    const reservation = await prisma.$transaction(async (tx) => {
       await tx.user.update({
-        data: {
-          name,
-          phone,
-        },
+        data: { name, phone },
         where: { id: session.user.id },
       });
-      const reservation = await tx.reservation.create({
+      return await tx.reservation.create({
         data: {
-          date: date,
-          startTime: startTime,
-          endTime: endTime,
-          price: price,
-          courtId: courtId,
+          date,
+          startTime,
+          endTime,
+          price,
+          courtId,
           userId: session.user.id as string,
-          Payment: {
-            create: {
-              amount: total,
-            },
-          },
+          Payment: { create: { amount: total } },
         },
       });
-      reservationId = reservation.id;
     });
+
+    redirect(`/checkout/${reservation.id}`);
   } catch (error) {
     console.log(error);
-    return { messageTime: "Failed to create reservation. Please try again." };
+    return {
+      messageTime: "Failed to create reservation",
+      messageDate: "",
+      error: {},
+    };
   }
-  redirect(`/checkout/${reservationId}`);
 };
