@@ -1,5 +1,5 @@
 "use client";
-import { useState, useActionState } from "react";
+import { useState, useActionState, ChangeEvent } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { createReserve } from "@/lib/actions";
@@ -13,9 +13,9 @@ const ReserveForm = ({
   court: CourtDetailProps;
   disabledDate: DisabledDateProps[];
 }) => {
-  const [reserveDate, setReserveDate] = useState(new Date());
-  const [startTime, setStartTime] = useState("09:00");
-  const [endTime, setEndTime] = useState("10:00");
+  const [reserveDate, setReserveDate] = useState<Date>(new Date());
+  const [startTime, setStartTime] = useState<string>("09:00");
+  const [endTime, setEndTime] = useState<string>("10:00");
 
   const [state, formAction, isPending] = useActionState(
     createReserve.bind(
@@ -39,12 +39,12 @@ const ReserveForm = ({
     })
     .filter((item) => item.start && item.end);
 
-  const operatingHours = Array.from({ length: 17 }, (_, i) => {
+  const operatingHours: string[] = Array.from({ length: 17 }, (_, i) => {
     const hour = 8 + i;
     return `${String(hour).padStart(2, "0")}:00`;
   });
 
-  const handleStartTimeChange = (e: any) => {
+  const handleStartTimeChange = (e: ChangeEvent<HTMLSelectElement>): void => {
     const newStartTime = e.target.value;
     if (!newStartTime) return;
 
@@ -62,7 +62,7 @@ const ReserveForm = ({
     setEndTime(`${String(endHour).padStart(2, "0")}:00`);
   };
 
-  const getAvailableStartTimes = () => {
+  const getAvailableStartTimes = (): string[] => {
     const bookedSlots = disabledDate
       .map((item) => {
         const itemDate = new Date(item.date);
@@ -73,7 +73,9 @@ const ReserveForm = ({
         }
         return null;
       })
-      .filter((slot) => slot !== null);
+      .filter(
+        (slot): slot is { startTime: string; endTime: string } => slot !== null
+      );
 
     return operatingHours.filter((time) => {
       const [hour, min] = time.split(":").map(Number);
@@ -100,7 +102,7 @@ const ReserveForm = ({
     });
   };
 
-  const getAvailableEndTimes = () => {
+  const getAvailableEndTimes = (): string[] => {
     if (!startTime) return [];
 
     const [startHour] = startTime.split(":").map(Number);
@@ -114,7 +116,9 @@ const ReserveForm = ({
         }
         return null;
       })
-      .filter((slot) => slot !== null);
+      .filter(
+        (slot): slot is { startTime: string; endTime: string } => slot !== null
+      );
 
     return operatingHours.filter((time) => {
       const [endHour] = time.split(":").map(Number);
@@ -154,7 +158,9 @@ const ReserveForm = ({
           </label>
           <DatePicker
             selected={reserveDate}
-            onChange={(date) => setReserveDate(date)}
+            onChange={(date: Date | null) => {
+              if (date) setReserveDate(date);
+            }}
             minDate={new Date()}
             excludeDateIntervals={excludeDates}
             dateFormat="dd-MM-YYYY"
@@ -194,7 +200,9 @@ const ReserveForm = ({
               </label>
               <select
                 value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
+                onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                  setEndTime(e.target.value)
+                }
                 className="py-2 px-4 rounded-md border border-gray-300 w-full"
               >
                 <option value="">Select End Time</option>
