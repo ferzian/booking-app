@@ -8,11 +8,11 @@ export const metadata: Metadata = {
 };
 
 const PaymentSuccess = async ({
-  SearchParams,
+  searchParams,
 }: {
-  SearchParams: Promise<{ transaction_status: string }>;
+  searchParams: Promise<{ transaction_status: string }>;
 }) => {
-  const paymentStatus = (await SearchParams).transaction_status;
+  const paymentStatus = (await searchParams).transaction_status;
   if (paymentStatus === "pending") redirect("/payment/pending");
   if (paymentStatus === "failure") redirect("/payment/failure");
 
